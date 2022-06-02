@@ -5,7 +5,7 @@ spr_beevee = nil
 function register()
 	return {
 		name = MOD_NAME,
-		hooks = {"tick", "ready"},
+		hooks = {"step", "ready"},
 		modules = {}
 	}
 end	
@@ -17,8 +17,6 @@ function init()
 end
 
 function ready()
-	api_log("ready", "getting player information")
-
 	player = api_get_player_instance()
 	ppos_x = api_gp(player, "x")
 	ppos_y = api_gp(player, "y")
@@ -47,7 +45,7 @@ function beevee_position_callback()
 	if #objs_left == 0 and #objs_right == 0 then
 		api_create_obj("beevee_mod_pokemon_131_left", ppos_x + BEEVE_XPOS_STEP_SIZE, ppos_y)
 	else
-		api_log("beevee_position_callback", "eevee defined so destroying current existing object and creating new one")
+		-- create new beevee, destroy previous one
 		api_create_obj(beevee_object_to_use, beevee_xpos, ppos_y)
 		if #objs_left ~= 0 then
 			api_destroy_inst(objs_left[1]["id"])
@@ -57,7 +55,7 @@ function beevee_position_callback()
 	end
 end
 
-function tick()
+function step()
 	-- check player coords and adjust pos of beevee
 	update_beevee_pos()
 end
