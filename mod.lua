@@ -1,7 +1,10 @@
 MOD_NAME = "beevee_mod"
 BEEVEE_MOD_OBJ_OID = "beevee_mod_pokemon_131"
 BEEVE_XPOS_STEP_SIZE = 8
-spr_beevee = nil
+CURRENT_BEEVEE_INST = nil
+
+-- spr_beevee = nil
+
 function register()
 	return {
 		name = MOD_NAME,
@@ -23,11 +26,35 @@ function ready()
 
 	api_log("ready", "initializing beevee position")
 	api_create_obj("beevee_mod_pokemon_131_left", ppos_x + BEEVE_XPOS_STEP_SIZE, ppos_y)
+	CURRENT_BEEVEE_INST = api_get_objects(nil, "beevee_mod_pokemon_131_left")
+	reset_beevees_on_load()
 	beevee_position_callback()
+end
+
+function reset_beevees_on_load()
+	objs_left = api_get_objects(nil, "beevee_mod_pokemon_131_left")
+	if #objs_left ~= 0 then
+		for i=1, #objs_left do
+			api_destroy_inst(objs_left[i]["id"])
+		end
+	end
+	objs_right = api_get_objects(nil, "beevee_mod_pokemon_131_right")
+	if #objs_right ~= 0 then
+		for i=1, #objs_right do
+			api_destroy_inst(objs_right[i]["id"])
+		end
+	end
 end
 
 function beevee_position_callback()
 	player = api_get_player_instance()
+
+	-- if beevee in inventory then return 
+	inventory_check = api_slot_match(player, {"beevee_mod_pokemon_131_left", "beevee_mod_pokemon_131_right"}, true)
+	if inventory_check ~= nil then
+		return
+	end
+
 	ppos_x = api_gp(player, "x")
 	ppos_y = api_gp(player, "y")
 	pdir = api_gp(player, "dir")
@@ -44,14 +71,12 @@ function beevee_position_callback()
 	objs_right = api_get_objects(nil, "beevee_mod_pokemon_131_right")
 	if #objs_left == 0 and #objs_right == 0 then
 		api_create_obj("beevee_mod_pokemon_131_left", ppos_x + BEEVE_XPOS_STEP_SIZE, ppos_y)
+		CURRENT_BEEVEE_INST = api_get_objects(nil, "beevee_mod_pokemon_131_left")
 	else
-		-- create new beevee, destroy previous one
+
+		reset_beevees_on_load()
 		api_create_obj(beevee_object_to_use, beevee_xpos, ppos_y)
-		if #objs_left ~= 0 then
-			api_destroy_inst(objs_left[1]["id"])
-		else
-			api_destroy_inst(objs_right[1]["id"])
-		end
+		CURRENT_BEEVEE_INST = api_get_objects(nil, beevee_object_to_use)
 	end
 end
 
@@ -66,7 +91,7 @@ function define_beevee_obj()
 		name = "eevee",
 		category = "friend",
 		tooltip = "evoiiiii",
-		shop_key = true,
+		shop_key = false,
 		tools = {"hammer1"},
 		placeable = true,
 		durability = false,
